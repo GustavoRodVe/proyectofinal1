@@ -25,8 +25,3 @@ A modern project management application built with Next.js that helps teams orga
   - Customizable user profiles
   - Activity tracking
   - Project participation history
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
