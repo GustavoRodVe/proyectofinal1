@@ -31,11 +31,22 @@ export const auth = {
     }
 
     // Step 2: Try to sign up the user
+    const siteOrigin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : undefined);
+
+    const emailRedirectTo = siteOrigin
+      ? `${siteOrigin.replace(/\/$/, '')}/auth/callback`
+      : undefined;
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        // If we couldn't determine a site origin (very rare), omit redirect and
+        // Supabase will use the default configured redirect URL from the
+        // provider settings in the Supabase dashboard.
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
       },
     });
 
@@ -80,10 +91,20 @@ export const auth = {
 
   // OAuth Sign In (Google, GitHub)
   async signInWithOAuth(provider: 'github' | 'google', nextUrl?: string) {
+    const siteOrigin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : undefined);
+
+    const redirectTo = siteOrigin
+      ? `${siteOrigin.replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(
+          nextUrl || '/'
+        )}`
+      : undefined;
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${location.origin}/auth/callback?next=${nextUrl || '/'}`,
+        ...(redirectTo ? { redirectTo } : {}),
       },
     });
     if (error) throw error;
@@ -120,9 +141,16 @@ export const auth = {
       };
     }
 
-    const resetLink = `${location.origin}/auth/reset-password`;
+    const siteOrigin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : undefined);
+
+    const resetLink = siteOrigin
+      ? `${siteOrigin.replace(/\/$/, '')}/auth/reset-password`
+      : undefined;
+
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: resetLink,
+      ...(resetLink ? { redirectTo: resetLink } : {}),
     });
 
     if (error) throw error;
